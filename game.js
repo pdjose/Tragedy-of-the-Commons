@@ -88,10 +88,16 @@ function createRoom(mode) {
 
     // Fetch network URL once
     if (!networkURL) {
-        fetch('/api/info').then(function (r) { return r.json(); }).then(function (info) {
-            networkURL = (info.urls && info.urls.length > 0) ? info.urls[0] : location.origin;
+        // If we're not on localhost (e.g. on render/glitch), the network URL is just the current domain
+        if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            networkURL = location.origin;
             renderRoomDashboard();
-        }).catch(function () { networkURL = location.origin; });
+        } else {
+            fetch('/api/info').then(function (r) { return r.json(); }).then(function (info) {
+                networkURL = (info.urls && info.urls.length > 0) ? info.urls[0] : location.origin;
+                renderRoomDashboard();
+            }).catch(function () { networkURL = location.origin; });
+        }
     }
 
     for (var i = 0; i < count; i++) {
