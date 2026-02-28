@@ -247,7 +247,8 @@ function renderRoomDashboard() {
         // Action buttons
         h += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
         if (room.status === 'waiting') {
-            h += '<button class="btn btn-s" onclick="startAdminRoom(' + idx + ')"' + (room.players.length < 1 ? ' disabled title="Need at least 1 player"' : '') + '>▶ Start Game</button>';
+            var canStart = room.players.length > 0 || room.aisConfig.length > 0;
+            h += '<button class="btn btn-s" onclick="startAdminRoom(' + idx + ')"' + (!canStart ? ' disabled title="Need at least 1 player or AI"' : '') + '>▶ Start Game</button>';
         }
         if (room.status === 'playing') {
             h += '<button class="btn btn-s" onclick="viewAdminRoom(' + idx + ')">👁 Monitor</button>';
@@ -325,7 +326,8 @@ function printRoomList() {
 
 function startAdminRoom(idx) {
     var room = adminRooms[idx];
-    if (!room || room.players.length < 1) { alert('Need at least 1 player to join.'); return; }
+    if (!room) return;
+    if (room.players.length < 1 && room.aisConfig.length < 1) { alert('Need at least 1 player or AI to start.'); return; }
     room.ws.send(JSON.stringify({ type: 'start-game' }));
 }
 
@@ -889,3 +891,11 @@ function showEnd() {
 }
 
 window.addEventListener('resize', function () { if (el('sim-scr').classList.contains('active')) setupCanvas(); });
+
+// Reveal admin button if url has ?admin=true
+window.addEventListener('DOMContentLoaded', function () {
+    if (location.search.includes('admin=true')) {
+        var btn = document.getElementById('btn-admin-host');
+        if (btn) btn.style.display = 'block';
+    }
+});
